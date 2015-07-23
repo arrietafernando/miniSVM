@@ -93,7 +93,7 @@ static void info(const char *fmt,...)
 static void info(const char *fmt,...) {}
 #endif
 
-
+//以下以learned_func开头的是分类目标函数
 
 /**
 线性稀疏二分类问题
@@ -108,6 +108,7 @@ double learned_func_linear_sparse_binary(int k){
     return s;
 }
 
+//线性系数非二分类问题
 double learned_func_linear_sparse_nobinary(int k){
     double s = 0.;
 
@@ -122,6 +123,7 @@ double learned_func_linear_sparse_nobinary(int k){
     return s;
 }
 
+//线性稠密非二分类问题
 double learned_func_linear_dense(int k){
     double s = 0.;
 
@@ -131,6 +133,7 @@ double learned_func_linear_dense(int k){
     return s;
 }
 
+//非线性分类问题
 double learned_func_nolinear(int k){
     double s = 0.;
 
@@ -141,7 +144,7 @@ double learned_func_nolinear(int k){
     return s;
 }
 
-
+//以下以dot_product 开头的是点积函数
 //kernel functions and dot product functions
 double dot_product_sparse_binary(int i1,int i2){
     int p1=0,p2=0,dot=0;
@@ -229,7 +232,9 @@ double error_rate()
 }
 
 /**********************************/
-
+/*
+优化两个变量alph1, alph2
+*/
 int takeStep(int i1,int i2)
 {
     int y1,y2,s;
@@ -418,7 +423,8 @@ int takeStep(int i1,int i2)
         for(int i=0; i<end_support_i; i++)
             if(alph[i] > 0 && alph[i] < C)
                 error_cache[i] += t1 * kernel_func(i1,i) + t2 * kernel_func(i2,i) - delta_b;
-
+        
+        //i1 i2这两个点已经分类正确，分类错误为0
         error_cache[i1] = 0.;
         error_cache[i2] = 0.;
     }
@@ -429,7 +435,9 @@ int takeStep(int i1,int i2)
     return 1;
 }
 
-
+/*
+检验第i1个训练样例是否违反KKT条件，违反返回1，否则返回0
+*/
 int examineExample(int i1)
 {
     double y1,alph1,E1,r1;
@@ -448,7 +456,7 @@ int examineExample(int i1)
     if((r1 < -tolerance && alph1 < C)
        ||(r1 > tolerance && alph1 > 0))
     {//有3种方式来寻找i2
-        //1.最大化|E1-E2|
+        //1. 从所有支持向量中找i2 使得最大化|E1-E2|
         {
             int k , i2;
             double tmax = 0;
@@ -474,7 +482,7 @@ int examineExample(int i1)
                     return 1;
             }
         }
-        //2. 从支持向量里找
+        //2. 从支持向量里随机找一个
         {
             int k,k0;
             int i2;
@@ -489,7 +497,7 @@ int examineExample(int i1)
                 }
             }
         }
-        //3. 从全部训练数据集里找
+        //3. 从全部训练数据集里找任意找一个
         {
             int k0,k,i2;
 
@@ -831,6 +839,7 @@ int main(int argc , char *argv[] )
         //寻找第一个第一个a1
         numChanged = 0;
         examineAll = 1;
+        //所有的点都已经分类正确
         while(numChanged > 0 || examineAll)
         {
             numChanged = 0;
@@ -843,6 +852,9 @@ int main(int argc , char *argv[] )
                     if(alph[k] !=0 && alph[k] != C)
                         numChanged += examineExample(k);
             }
+            
+            cout<<"examineAll= "<<examineAll<<" numChanged= "<< numChanged<<endl;
+            
             //
             if(examineAll == 1)
                 examineAll = 0;
@@ -851,7 +863,7 @@ int main(int argc , char *argv[] )
 
         {
 #if 1
-            cout<<"examineAll= "<<examineAll<<" numChanged= "<< numChanged<<endl;
+            
     #if 0
 
            double s = 0.;
